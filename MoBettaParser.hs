@@ -111,7 +111,6 @@ compTable = [
   , atomic "!=" NEqual
   ]
 
--- These help declare operators
 binary  opName f = InfixL (atomic opName f) -- (f <$ lexeme (string opName))
 prefix  opName f = Prefix (atomic opName f)
 atomic  opName f = f <$ lexeme (string opName)
@@ -123,7 +122,6 @@ spaceConsumer = L.space space1 lineCmnt blockCmnt
     lineCmnt  = L.skipLineComment "//"
     blockCmnt = L.skipBlockComment "/*" "*/"
 
--- Define a wrapper that consumes space after a parser
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme spaceConsumer
 
@@ -149,9 +147,9 @@ intConst = fmap IntConst intConst'
   where
     intConst' = (lexeme . try) ic
     ic = do
-          x <- L.decimal -- parse a literal
-          notFollowedBy letterChar -- fail if followed by a letter
-          return x -- return the  result if we haven't failed
+          x <- L.decimal 
+          notFollowedBy letterChar 
+          return x 
 
 tryit p = parse p "(--)"
 
