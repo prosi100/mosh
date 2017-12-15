@@ -54,15 +54,13 @@ statementAction (Msg s) = msgAction s -- display string s
 statementAction (Read v) =  readAction v -- read in a value for v
 statementAction (If b s1 s2) =
   ifAction (boolCalc b) (statementAction s1) (statementAction s2)
-                        -- Calculate b, then decide which computation to do
+                        
 statementAction (While b s) = whileAction (boolCalc b) (statementAction s)
-                        -- compute "while b s"
+                        
 statementAction (Assign v e) = assignAction v (intCalc e)
-                        -- compute e, and assign to v
+                        
 statementAction (Block ls) = blockAction $ map statementAction ls
-                        -- compute a sequence of individual computations
-                        -- by translating each into a computation
-
+                       
 makeProgram ls = blockAction $ map statementAction ls
 
 {---------------------------------------------------------------------------
@@ -100,7 +98,6 @@ Interpretations of individual statement types
 Now we define the semantics of each type of action.
 ---------------------------------------------------------------------------}
 
--- Read and store an integer in a variable
 readAction :: String -> Action
 readAction v = do
   x <- doIO getInt
@@ -110,26 +107,23 @@ readAction v = do
       inp <- getLine
       return $ read inp
 
--- Display a string
 msgAction :: String -> Action
 msgAction s = doIO $ putStr s
 
--- Display result of computing an integer
 printAction :: IntCalc -> Action
 printAction intCalc = do
-  n <- intCalc 
-  doIO $ putStr $ show n 
+  n <- intCalc -- execute given integer calculation to obtain an Integer
+  doIO $ putStr $ show n -- display it
 
--- Compute an integer, then store it
 assignAction :: String -> IntCalc -> Action
 assignAction v intCalc = do
-  n <- intCalc 
-  updateEnv v n 
+  n <- intCalc -- calculate the right-hand side of an assignment
+  updateEnv v n -- store the result
 
--- Compute a boolean, use it to decide which computation to do.
+
 ifAction :: BoolCalc -> Action -> Action -> Action
 ifAction boolCalc action1 action2 = do
-  cond <- boolCalc 
+  cond <- boolCalc
   if cond then     
     action1
   else
@@ -137,15 +131,13 @@ ifAction boolCalc action1 action2 = do
 
 whileAction :: BoolCalc -> Action -> Action
 whileAction boolCalc action = do
-  cond <- boolCalc 
+  cond <- boolCalc
   when cond loop   
   where
     loop = do
       action
       whileAction boolCalc action
 
--- Do a list of actions sequentially.
--- NB. There is a combinator for this, but I've written it out for clarity.
 blockAction :: [Action] -> Action
 blockAction [] = return ()
 blockAction (a:ls) = do
@@ -196,7 +188,6 @@ opLookup op opTable =
   fromMaybe (error "Undefined operator. Should never happen.")
             (lookup op opTable)
 
--- This defines the translation of a BExpr into a computation of Booleans
 boolCalc :: BExpr -> BoolCalc
 boolCalc (BoolConst b) = return b
 boolCalc (Reln cOp expr1 expr2)
